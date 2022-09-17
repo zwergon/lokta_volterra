@@ -32,7 +32,7 @@ def gaussian(x, mu, sigma):
     return np.exp(-.5*(x[0]-mu[0])**2 / sigma[0]**2)*np.exp(- .5*(x[1]-mu[1])**2 / sigma[1]**2)
 
 
-def pdf(x):
+def pdf2d_polynomial(x):
     if x[0] < 0:
         return 0.
     if x[0] > 1:

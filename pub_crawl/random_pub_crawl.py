@@ -1,7 +1,17 @@
+# -*- coding: utf-8 -*-
+"""
+This file coontains the implementation of the randow walk on the exemple given by Sarah Filippi in
+her course
+
+:author Jean-François Lecomte
+:date 2021
+:links docs/sarah_filippi_imperial_markov.pdf
+"""
+
 import numpy as np
 from enum import Enum
 
-from markov_sampling import estimate_probas, compute_stat, random_walk
+from pub_crawl.markov_sampling import estimate_probas, compute_stat, random_walk
 import random
 import matplotlib.pyplot as plt
 

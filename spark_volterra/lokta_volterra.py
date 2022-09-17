@@ -1,5 +1,7 @@
 import numpy as np
 import random
+import matplotlib.pyplot as plt
+
 import warnings
 warnings.simplefilter("error")
 
@@ -18,7 +20,7 @@ class LoktaVolterra:
 
     @property
     def lambda_i(self):
-        return 2.*self._lambda_i
+        return self._lambda_i
 
 
     @staticmethod
@@ -33,6 +35,10 @@ class LoktaVolterra:
     def _compute_drift(self, x):
         p_i = self._probas(x)
         mu_dt = self.dt * np.matmul(self.lambda_i, p_i)
+        # mu_dt = [0, 0, 0]
+        # mu_dt[0] = (self.c[0]*x[0] - self.c[1]*x[0]*x[1] - self.c[2]*x[0]*x[2])*self.dt
+        # mu_dt[1] = (self.c[1] * x[0] * x[1] - self.c[3] * x[1]) * self.dt
+        # mu_dt[2] = (self.c[2] * x[0] * x[2] - self.c[4] * x[2]) * self.dt
 
         return x + mu_dt
 
@@ -51,7 +57,8 @@ class LoktaVolterra:
 
     def _probas(self, x):
         a = self._transition(self.c, x)
-        return a / np.sum(a)
+        #return a / np.sum(a)
+        return a
 
     def run_single_deterministic(self, x0, total_time):
         t = 0
@@ -92,7 +99,17 @@ class LoktaVolterra:
             self.times.append(t*time_scale)
             self.x.append(x)
 
-    def run_simple_euler_muruayama(self, x0, total_time, time_scale=.01):
+    def run_simple_euler_muruayama(self, x0, total_time, time_scale=.01, max_tries=30):
+        i = 0
+        while i<max_tries:
+            try:
+                self._run_simple_euler_muruayama(x0, total_time, time_scale)
+                return True
+            except RuntimeWarning:
+                print("error in run_simple_euler_muruayama, retry...")
+        return False
+
+    def _run_simple_euler_muruayama(self, x0, total_time, time_scale=.01):
 
         t = 0
         self.x = [x0]
@@ -145,7 +162,7 @@ class LoktaVolterra3(LoktaVolterra):
 
 def compute3():
 
-    c = [10., 0.005, 0.0025, 6, 3]
+    c = [10., 0.005, 0.0025, 6., 3.]
 
     lambda_i = [
         [1, -1, -1, 0, 0],
@@ -163,8 +180,18 @@ def compute3():
         ]
 
     lv = LoktaVolterra3(c, lambda_i, transition)
-    lv.run_simple_euler_muruayama((800, 500, 600), 50000., time_scale=100)
+    lv.dt = 0.001
+    lv.run_single_deterministic((800, 500, 600), 3.)
+    times = lv.times.copy()
+    prey = lv.prey.copy()
+    predator1 = lv.predator1.copy()
+    predator2 = lv.predator2.copy()
 
+    lv.run_simple_euler_muruayama((800, 500, 600), 3., time_scale=0.001)
+
+    plt.plot(times, prey)
+    plt.plot(times, predator1)
+    plt.plot(times, predator2)
     plt.plot(lv.times, lv.prey)
     plt.plot(lv.times, lv.predator1)
     plt.plot(lv.times, lv.predator2)
@@ -189,38 +216,33 @@ def compute2():
         ]
 
     lv = LoktaVolterra2(c, lambda_i, transition)
+    total_time = 20.
 
-    ## x[0]: Hare, x[1]: Lynx
-    total_time = 1000.
-    n_run = 1
-    timescale = .1
-    n_x = int(total_time / timescale)
-
-    y_results = np.zeros(shape=(2, n_run, n_x))
-    i= 0
-    while i < n_run:
-        try:
-            lv.run_simple_euler_muruayama((30, 4), total_time=total_time, time_scale=timescale)
-            y_results[0, i, :] = np.array(lv.prey)
-            y_results[1, i, :] = np.array(lv.predator)
-            i += 1
-        except RuntimeWarning:
-            print("error in run_simple_euler_muruayama, retry...")
-
-    time_stoc = lv.times.copy()
+    # ## x[0]: Hare, x[1]: Lynx
+    #
+    # n_run = 1
+    # timescale = .0001
+    # n_x = int(total_time / timescale)
+    #
+    # y_results = np.zeros(shape=(2, n_run, n_x))
+    # i= 0
+    # while i < n_run:
+    #     try:
+    #         lv.run_simple_euler_muruayama((30, 4), total_time=total_time, time_scale=timescale)
+    #         y_results[0, i, :] = np.array(lv.prey)
+    #         y_results[1, i, :] = np.array(lv.predator)
+    #         i += 1
+    #     except RuntimeWarning:
+    #         print("error in run_simple_euler_muruayama, retry...")
+    #
+    # time_stoc = lv.times.copy()
 
     lv.run_single_deterministic((30, 4), total_time)
     plt.plot(lv.times, lv.prey)
     plt.plot(lv.times, lv.predator)
-    plt.plot(time_stoc, np.mean(y_results[0, :, :], axis=0))
-    plt.plot(time_stoc, np.mean(y_results[1, :, :], axis=0))
+    #plt.plot(time_stoc, np.mean(y_results[0, :, :], axis=0))
+    #plt.plot(time_stoc, np.mean(y_results[1, :, :], axis=0))
     #plt.plot(time_stoc, y_results[0, 0, :])
     #plt.plot(time_stoc, y_results[1, 0, :])
     plt.show()
-
-
-if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-    compute2()
-
 

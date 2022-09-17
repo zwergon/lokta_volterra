@@ -1,6 +1,4 @@
-# Data from http://www.math.tamu.edu/~phoward/m442/modbasics.pdf
-# Downloaded 15 October 2017, 4:59 PM EDT
-Year, Lynx, Hare
+"Year","Lynx","Hare"
 1900, 4.0, 30.0
 1901, 6.1, 47.2
 1902, 9.8, 70.2
